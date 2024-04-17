@@ -1,4 +1,4 @@
-# libigl 🤝 stan math
+# libigl 🤝 [stan math](https://mc-stan.org/users/interfaces/math)
 
 ## Build
 
