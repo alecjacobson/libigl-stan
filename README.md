@@ -26,7 +26,7 @@ computed gradients.
 
 ## Known Issues
 
-> - Thanks to [cmake/stan.cmake](cmake/stan.cmake) we no longer need to include 
+> - Thanks to [cmake/stan.cmake#L57](cmake/stan.cmake#L57) we no longer need to include 
 `#include <stan/math.hpp>` before and Eigen or libigl includes.
 
 > - [cmake/stan.cmake](cmake/stan.cmake) is currently using Stan's officially
