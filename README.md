@@ -26,15 +26,11 @@ computed gradients.
 
 ## Known Issues
 
-As far as I can tell, the
+> Thanks to [cmake/stan.cmake](cmake/stan.cmake) we no longer need to include 
+`#include <stan/math.hpp>` before and Eigen or libigl includes.
 
-```cpp
-#include <stan/math.hpp>
-```
+ - In debug mode, stan is crashing on exit with a memory violation. This is not
+   happening in http://github.com/alecjacobson/stan-crash perhaps because that
+   project is using dependencies (presumably TBB) that come with stan rather
+   than downloading them separately (as this project is).
 
-line must come before any includes to Eigen. If you first include Eigen headers
-(or libigl which in turn include Eigen headers), then you could get errors like:
-
-```
-…/libigl-stan/build/_deps/stan/src/stan/stan/math/rev/fun/gp_exp_quad_cov.hpp:94:58: error: no member named 'adj' in 'stan::math::arena_matrix<Eigen::Matrix<stan::math::var_value<double>, -1, 1, 0>>'
-```

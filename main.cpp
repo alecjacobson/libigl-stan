@@ -1,9 +1,7 @@
-// THIS MUST BE INCLUDED BEFORE ANY EIGEN HEADERS
-#include <stan/math.hpp>
-
 #include <igl/read_triangle_mesh.h>
 #include <igl/opengl/glfw/Viewer.h>
 #include <igl/doublearea.h>
+#include <stan/math.hpp>
 #include <iostream>
 
 template <typename DerivedV>

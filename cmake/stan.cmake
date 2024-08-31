@@ -17,8 +17,6 @@ ExternalProject_Add(
 
 # Add your project files
 file(GLOB SRC_FILES *.cpp)
-add_executable(${PROJECT_NAME} ${SRC_FILES})
-add_dependencies(${PROJECT_NAME} stan)
 add_library(stan::stan INTERFACE IMPORTED GLOBAL)
 set(stan_BOOST_INCLUDE_DIR ${stan_INSTALL}/lib/boost_1.81.0)
 set(stan_SUNDIALS_INCLUDE_DIR ${stan_INSTALL}/lib/sundials_6.1.1/include/)
@@ -31,3 +29,7 @@ target_include_directories(stan::stan INTERFACE ${stan_INCLUDE_DIR} ${stan_BOOST
 target_compile_definitions(stan::stan INTERFACE "_REENTRANT")
 target_link_libraries(stan::stan INTERFACE "${stan_LIBRARIES}" TBB::tbb)  
 
+# add a compilation flag so that "[]/stan/math/prim/fun/Eigen.hpp" is included
+# first
+# https://github.com/stan-dev/math/issues/2879#issuecomment-1456241790
+target_compile_options(stan::stan INTERFACE "-include" "stan/math/prim/fun/Eigen.hpp")
