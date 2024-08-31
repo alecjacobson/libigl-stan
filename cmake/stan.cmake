@@ -1,34 +1,56 @@
-include(tbb)
+include(FetchContent)
 
-set(prefix ${FETCHCONTENT_BASE_DIR}/stan)
-set(stan_INSTALL ${prefix}/src/stan)
-set(stan_INCLUDE_DIR ${stan_INSTALL})
-include(ExternalProject)
-ExternalProject_Add(
+message(STATUS "Fetching Stan...")
+
+FetchContent_Declare(
   stan
-  PREFIX ${prefix}
-  URL https://github.com/stan-dev/math/archive/refs/tags/v4.8.1.tar.gz
-  URL_MD5 df3dfb4b5e79eebf5ed292c236251173
-  UPDATE_DISCONNECTED true
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ""
-  INSTALL_COMMAND ""
-        )
+  URL https://github.com/stan-dev/math/archive/refs/tags/v4.9.0.tar.gz
+  URL_MD5 468af66d69ba47dc8a59fb9206fd7159
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
 
-# Add your project files
-file(GLOB SRC_FILES *.cpp)
+# Make sure the content is downloaded and available
+FetchContent_MakeAvailable(stan)
+
+# Manually set up the include directories for Stan
+set(STAN_INCLUDE_DIRS ${stan_SOURCE_DIR})
+
+# stan comes with its own Eigen, Boost, sundials and tbb
+file(GLOB BOOST_INCLUDE_DIR "${stan_SOURCE_DIR}/lib/boost_*")
+file(GLOB SUNDIALS_INCLUDE_DIR "${stan_SOURCE_DIR}/lib/sundials_*/include")
+file(GLOB TBB_INCLUDE_DIR "${stan_SOURCE_DIR}/lib/tbb_*/include")
+file(GLOB TBB_SOURCE_DIR "${stan_SOURCE_DIR}/lib/tbb_*")
+
+# Create an interface library for Stan
 add_library(stan::stan INTERFACE IMPORTED GLOBAL)
-set(stan_BOOST_INCLUDE_DIR ${stan_INSTALL}/lib/boost_1.81.0)
-set(stan_SUNDIALS_INCLUDE_DIR ${stan_INSTALL}/lib/sundials_6.1.1/include/)
-# make temporary folder at stan_BOOST_INCLUDE_DIR and stan_SUNDIALS_INCLUDE_DIR
-# so that it exists now. It will be downloaded there.
-file(MAKE_DIRECTORY ${stan_BOOST_INCLUDE_DIR})
-file(MAKE_DIRECTORY ${stan_SUNDIALS_INCLUDE_DIR})
-target_include_directories(stan::stan INTERFACE ${stan_INCLUDE_DIR} ${stan_BOOST_INCLUDE_DIR} ${stan_SUNDIALS_INCLUDE_DIR})
-# Why is this needed but not defined by default?
-target_compile_definitions(stan::stan INTERFACE "_REENTRANT")
-target_link_libraries(stan::stan INTERFACE "${stan_LIBRARIES}" TBB::tbb)  
+target_include_directories(stan::stan INTERFACE 
+  ${STAN_INCLUDE_DIRS}
+  ${BOOST_INCLUDE_DIR}
+  ${SUNDIALS_INCLUDE_DIR}
+)
 
+# determine if Eigen3::Eigen alias is already defined (e.g., from libigl)
+if(TARGET Eigen3::Eigen)
+  message(STATUS "Using existing Eigen3::Eigen alias")
+  target_link_libraries(stan::stan INTERFACE Eigen3::Eigen)
+else()
+  message(STATUS "Using Stan's Eigen")
+  file(GLOB EIGEN_INCLUDE_DIR "${stan_SOURCE_DIR}/lib/eigen_*")
+  target_include_directories(stan::stan INTERFACE ${EIGEN_INCLUDE_DIR})
+endif()
+
+# Add TBB using TBBBuild.cmake if available
+if(EXISTS "${TBB_SOURCE_DIR}/cmake/TBBBuild.cmake")
+    include(${TBB_SOURCE_DIR}/cmake/TBBBuild.cmake)
+    tbb_build(TBB_ROOT ${TBB_SOURCE_DIR} CONFIG_DIR TBB_DIR)
+    find_package(TBB REQUIRED CONFIG)
+    message(STATUS "TBB found and built successfully.")
+else()
+    message(FATAL_ERROR "TBBBuild.cmake not found in TBB source directory.")
+endif()
+
+target_link_libraries(stan::stan INTERFACE TBB::tbb)
+target_compile_definitions(stan::stan INTERFACE NO_FPRINTF_OUTPUT BOOST_DISABLE_ASSERTS TBB_INTERFACE_NEW _REENTRANT)
 # add a compilation flag so that "[]/stan/math/prim/fun/Eigen.hpp" is included
 # first
 # https://github.com/stan-dev/math/issues/2879#issuecomment-1456241790

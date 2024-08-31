@@ -26,11 +26,11 @@ computed gradients.
 
 ## Known Issues
 
-> Thanks to [cmake/stan.cmake](cmake/stan.cmake) we no longer need to include 
+> - Thanks to [cmake/stan.cmake](cmake/stan.cmake) we no longer need to include 
 `#include <stan/math.hpp>` before and Eigen or libigl includes.
 
- - In debug mode, stan is crashing on exit with a memory violation. This is not
-   happening in http://github.com/alecjacobson/stan-crash perhaps because that
-   project is using dependencies (presumably TBB) that come with stan rather
-   than downloading them separately (as this project is).
+> - [cmake/stan.cmake](cmake/stan.cmake) is currently using Stan's officially
+> supported and included version of tbb. In the past, I tried to fetch tbb
+> directly and perhaps there was a version mismatch because Stan was crashing on
+> exit in debug mode. This is no longer the case.
 

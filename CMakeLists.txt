@@ -12,6 +12,8 @@ include(libigl)
 igl_include(glfw)
 
 include(stan)
+file(GLOB SRC_FILES *.cpp)
+add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 # Link igl (and the glfw module) to your project
 target_link_libraries(${PROJECT_NAME} PUBLIC 
